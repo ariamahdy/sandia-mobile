@@ -17,6 +17,9 @@
     "test:ios": "wdio run wdio.ios.conf.ts",
     "test:uat": "node --env-file=private/.env node_modules/@wdio/cli/bin/wdio.js run wdio.android.conf.ts",
     "fetch:demo-app": "node scripts/fetch-demo-app.mjs",
+    "test:stability": "wdio run wdio.android.conf.ts --suite demo --repeat 3",
+    "doctor": "node scripts/doctor.mjs",
+    "error:share": "node scripts/error-share.mjs",
     "guard": "node scripts/guard.mjs",
     "prepare": "simple-git-hooks && node scripts/setup-private-hooks.mjs"
   },
