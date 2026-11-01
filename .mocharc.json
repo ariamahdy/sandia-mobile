@@ -1,5 +1,4 @@
 {
-  "spec": ["tests/unit/**/*.spec.ts"],
   "extension": ["ts"],
   "node-option": ["import=tsx"]
 }

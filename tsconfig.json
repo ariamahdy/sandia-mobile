@@ -4,7 +4,7 @@
     "lib": ["ES2024"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "types": ["node", "mocha"],
+    "types": ["node", "mocha", "@wdio/mocha-framework", "@wdio/appium-service"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,

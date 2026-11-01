@@ -58,8 +58,8 @@ A change to layering, a new dependency, a shared hook or contract, or a lint/gua
 |---|---|---|---|
 | D1 | WDIO built-ins first; no custom reporters, retry or wait utilities, logging wrappers | YAGNI | Review |
 | D2 | Exact version pins; TypeScript held at 6.0.3 | Ranges age silently; typescript-eslint peer range | `.npmrc`, `package.json` |
-| D3 | WebdriverIO 10, not 9.32 | 10.0.0 is a month old but current; starting on 9 means a major migration soon after creation | `package.json`; R6 |
-| D4 | Appium 3 as a local devDependency; drivers pinned and installed by `appium:setup` | Global Appium drifts per machine; `doctor` can check pins | `package.json`, `doctor` |
+| D3 | WebdriverIO 10, not 9.32; every `@wdio/*` package and `webdriverio` on the same version (10.0.1 at creation) | Starting on 9 meant a major migration soon after creation. 10.1.0 was under 14 days old at install; mixing 10.0.1 and 10.0.2 would install two copies of `@wdio/types` | `package.json`; R6 |
+| D4 | Appium 3 as a local devDependency (3.8.0 at creation); drivers pinned in `scripts/lib/appium-drivers.mjs` (uiautomator2 8.7.0, xcuitest 12.18.2, macOS only) and installed by `npm run appium:setup`, which keeps a pinned driver, reinstalls one at another version and installs a missing one | Global Appium drifts per machine; `appium driver install` fails when the driver already exists; `doctor` reads the same pins | `tests/unit/scripts/appium-drivers.spec.ts` |
 | D5 | No fixtures; pages are exported instances, cross-cutting setup lives in `src/hooks` registered in the WDIO config | WDIO has no fixture system; `hooks` takes the place of `fixtures` in the layer map | Lint (no `new` page, no `@hooks` in tests) |
 | D6 | Layering `config <- utils <- data <- helpers/components <- pages <- hooks <- tests` through aliases | Same isolation as `sandia-website` | ESLint, `verify:lint` |
 | D7 | Platform chosen by the WDIO config file, not by env | Mixed platform values cannot leak into a run; validation needs only that platform's variables | `tests/unit/config/env.spec.ts` |
@@ -74,7 +74,9 @@ A change to layering, a new dependency, a shared hook or contract, or a lint/gua
 | D16 | `error:share` shares only masked page source | Page source of a private app shows customer data | `tests/unit/scripts/error-share.spec.ts` |
 | D17 | Dependabot weekly, one PR per dependency, TypeScript ignored | Exact pins need an update signal | `.github/dependabot.yml` |
 | D18 | WDIO built-ins for swipe (`driver.swipe` with `scrollableElement`), permission dialogs (`acceptDialog`/`dismissDialog`) and repeated runs (`--repeat`); no custom swipe path builder or stability script | WDIO 10 ships these (D1); a custom builder duplicated `driver.swipe` | Review |
-| D19 | `$` stays strict (WDIO 10 default); no `strictSelectors: false`, no `{ strict: false }` | A selector matching several elements is a locator bug, as in `sandia-website` | `wdio.shared.conf.ts`, review |
+| D19 | `$` stays strict (WDIO 10 default); no `strictSelectors: false`, no `{ strict: false }` | A selector matching several elements is a locator bug, as in `sandia-website` | `tests/unit/config/wdio-config.spec.ts`, review |
+| D20 | `injectGlobals: false`; code imports `driver`, `$` and `expect` from `@wdio/globals`, and `tsconfig.json` does not load `@wdio/globals/types` | Explicit imports let ESLint restrict what specs may use (for example `$`), the way `sandia-website` bans importing `@playwright/test` in tests | `tests/unit/config/wdio-config.spec.ts`, lint (Task 5) |
+| D21 | `overrides` forces `shell-quote` 1.12.0 under Appium | Appium 3.8.0 pins `shell-quote` 1.10.0, which has a critical advisory (GHSA-pqg4-j6r4-53mv); 1.12.0 is the fixed minor and is what Appium 3.9.0 ships. Drop the override once Appium is upgraded past 3.8 | `package.json` |
 
 ## Risks and limits
 
@@ -84,3 +86,4 @@ A change to layering, a new dependency, a shared hook or contract, or a lint/gua
 - R4: private app tests cannot run in CI (VPN).
 - R5: rules not tool-enforced (allure step per action, `verify*` in every spec, unique E2E IDs, core changes found on the private app going to core first) rely on review.
 - R6: WebdriverIO 10 is young; plugin and service compatibility is checked at install, and a blocking bug is a reason to fall back to 9.32 with a decision row.
+- R7: `npm audit` at creation (2026-11-01) left three dev-only advisories: `body-parser` 2.3.0 under Appium (high, DoS on the local Appium server; fixed 2.4.0 is under 14 days old) and `glob`/`minimatch` under Mocha, WebdriverIO and Appium (moderate). Appium listens on `APPIUM_HOST` (127.0.0.1 by default) and glob patterns come only from this repo. Re-check when Dependabot proposes Appium or Mocha updates.

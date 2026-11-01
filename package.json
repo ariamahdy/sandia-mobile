@@ -9,16 +9,33 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test:unit": "mocha"
+    "test:unit": "mocha \"tests/unit/**/*.spec.ts\"",
+    "test:uat:unit": "mocha \"private/tests/unit/**/*.spec.ts\"",
+    "test:android": "wdio run wdio.android.conf.ts",
+    "test:ios": "wdio run wdio.ios.conf.ts",
+    "test:uat": "node --env-file=private/.env node_modules/@wdio/cli/bin/wdio.js run wdio.android.conf.ts",
+    "appium:setup": "node scripts/appium-setup.mjs"
   },
   "devDependencies": {
     "@types/mocha": "10.0.10",
     "@types/node": "26.6.5",
+    "@wdio/allure-reporter": "10.0.1",
+    "@wdio/appium-service": "10.0.1",
+    "@wdio/cli": "10.0.1",
+    "@wdio/globals": "10.0.1",
+    "@wdio/local-runner": "10.0.1",
+    "@wdio/mocha-framework": "10.0.1",
+    "@wdio/spec-reporter": "10.0.1",
+    "appium": "3.8.0",
     "mocha": "12.0.3",
     "tsx": "4.23.15",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "webdriverio": "10.0.1"
   },
   "dependencies": {
     "zod": "4.6.7"
+  },
+  "overrides": {
+    "shell-quote": "1.12.0"
   }
 }
