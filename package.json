@@ -16,7 +16,6 @@
     "test:android": "wdio run wdio.android.conf.ts",
     "test:ios": "wdio run wdio.ios.conf.ts",
     "test:uat": "node --env-file=private/.env node_modules/@wdio/cli/bin/wdio.js run wdio.android.conf.ts",
-    "appium:setup": "node scripts/appium-setup.mjs",
     "fetch:demo-app": "node scripts/fetch-demo-app.mjs",
     "guard": "node scripts/guard.mjs",
     "prepare": "simple-git-hooks && node scripts/setup-private-hooks.mjs"
@@ -33,6 +32,7 @@
     "@wdio/mocha-framework": "10.0.1",
     "@wdio/spec-reporter": "10.0.1",
     "appium": "3.8.0",
+    "appium-uiautomator2-driver": "8.7.0",
     "eslint": "10.13.0",
     "eslint-plugin-mocha": "12.0.2",
     "eslint-plugin-wdio": "10.0.1",

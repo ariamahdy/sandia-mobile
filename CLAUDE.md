@@ -19,7 +19,7 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 ## Versions and uncertainty
 - Never state versions from memory. Verify (npm registry, WebdriverIO and Appium release notes) and give version plus release date. A release younger than 14 days may be mentioned but is not the default. No web access: say "version unverified".
 - Never invent WebdriverIO/Appium APIs, capabilities or lint rule names. Unsure: check the docs or the installed package types and say so. Label assumptions as assumptions.
-- Exact pins only, no ranges. One upgrade per `build/` branch and commit; read the breaking changes first. TypeScript is held at 6.0.3 (typescript-eslint peer range); Appium drivers are pinned in `appium:setup`.
+- Exact pins only, no ranges. One upgrade per `build/` branch and commit; read the breaking changes first. TypeScript is held at 6.0.3 (typescript-eslint peer range); Appium drivers are exact devDependencies in `package.json` (Appium 3 uses the project as `APPIUM_HOME`), so `npm ci` installs them.
 
 ## Architecture mode
 - Design question: state the problem, 2-3 options with trade-offs (maintainability, flakiness, device/platform differences, speed, WebdriverIO/Appium limits), then one recommendation with a one-line reason.

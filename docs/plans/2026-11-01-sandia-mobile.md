@@ -212,7 +212,7 @@
 - Create: `.github/workflows/ci.yml`, `.github/workflows/stability.yml`, `.github/dependabot.yml`
 - Branch: `build/ci`
 
-- [ ] **Step 1: `ci.yml`** mirroring `../sandia-website/.github/workflows/ci.yml` (triggers push `main`, `pull_request`, `workflow_dispatch`; `permissions: contents: read`; `concurrency` per ref; `timeout-minutes` per job). Jobs: `quality` (checkout `fetch-depth: 0`, setup-node from `.nvmrc` with npm cache, `npm ci`, typecheck, lint, verify:lint, guard, gitleaks), `unit` (`npm run test:unit`), `android-e2e` (needs `quality`; KVM enabled; pinned emulator-runner action running `fetch:demo-app`, `appium:setup`, `test:android`; `allure-results/` and `test-results/` uploaded with `if: always()`, 14 days). Reuse the website's action SHAs where the action is the same and still current; resolve new ones from the action repos; never invent a SHA. Every `uses:` has `# <tag>`.
+- [ ] **Step 1: `ci.yml`** mirroring `../sandia-website/.github/workflows/ci.yml` (triggers push `main`, `pull_request`, `workflow_dispatch`; `permissions: contents: read`; `concurrency` per ref; `timeout-minutes` per job). Jobs: `quality` (checkout `fetch-depth: 0`, setup-node from `.nvmrc` with npm cache, `npm ci`, typecheck, lint, verify:lint, guard, gitleaks), `unit` (`npm run test:unit`), `android-e2e` (needs `quality`; KVM enabled; pinned emulator-runner action running `fetch:demo-app`, `test:android`; `allure-results/` and `test-results/` uploaded with `if: always()`, 14 days). Reuse the website's action SHAs where the action is the same and still current; resolve new ones from the action repos; never invent a SHA. Every `uses:` has `# <tag>`.
 - [ ] **Step 2: `stability.yml`**: weekly cron and dispatch, same emulator setup, `npm run test:stability`.
 - [ ] **Step 3: `dependabot.yml`** copied from the website: npm and github-actions weekly, `versioning-strategy: increase`, `ignore: typescript`.
 - [ ] **Step 4: Verify** `npm run guard` (SHA rule), YAML parse with `node -e` and the `yaml` package only if already installed; otherwise state that YAML was checked by eye.
@@ -224,8 +224,8 @@
 - Create: `README.md`, `docs/SETUP-ANDROID.md`, `docs/SETUP-WINDOWS.md`, `docs/SETUP-IOS.md` (short, "not run yet")
 - Branch: `docs/readme`
 
-- [ ] **Step 1: README** mirroring `../sandia-website/README.md` sections: badge, intro, requirements, quick start (`nvm use`, `npm ci`, `cp .env.example .env`, `npm run appium:setup`, `npm run doctor`, `npm run fetch:demo-app`, `npm run test:android`), configuration table (spec section 4), layout tree, commands table, private extension (`test:uat`, `test:uat:unit`, `error:share`), troubleshooting links.
-- [ ] **Step 2: Setup docs**: JDK, Android SDK cmdline-tools/platform-tools/emulator, system image per CPU (arm64 on Apple Silicon, x86_64 on Intel/AMD), env vars, a low-RAM AVD, Appium drivers through `appium:setup`, USB debugging for a real device, Windows specifics (acceleration, proxy, no admin rights). Every version number verified at write time.
+- [ ] **Step 1: README** mirroring `../sandia-website/README.md` sections: badge, intro, requirements, quick start (`nvm use`, `npm ci`, `cp .env.example .env`, `npm run doctor`, `npm run fetch:demo-app`, `npm run test:android`), configuration table (spec section 4), layout tree, commands table, private extension (`test:uat`, `test:uat:unit`, `error:share`), troubleshooting links.
+- [ ] **Step 2: Setup docs**: JDK, Android SDK cmdline-tools/platform-tools/emulator, system image per CPU (arm64 on Apple Silicon, x86_64 on Intel/AMD), env vars, a low-RAM AVD, Appium drivers come with `npm ci` (D4), USB debugging for a real device, Windows specifics (acceleration, proxy, no admin rights). Every version number verified at write time.
 - [ ] **Step 3: Verify** every `npm run` in README exists in `package.json` (`node -e`); every relative link resolves.
 - [ ] **Step 4: Commit** `docs: add README and setup guides`.
 
