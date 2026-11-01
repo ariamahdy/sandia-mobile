@@ -2,8 +2,6 @@ import { driver, expect } from '@wdio/globals';
 import { BasePage } from '@pages/base.page';
 import type { SelectorMap } from '@pages/selector-map';
 
-const SUCCESS_ALERT = 'Success\nYou are logged in!';
-
 const byText = (text: string): SelectorMap => ({
   android: `android=new UiSelector().text("${text}")`,
   ios: `-ios predicate string:label == "${text}"`,
@@ -16,6 +14,8 @@ const selectors = {
   submit: { android: '~button-LOGIN', ios: '~button-LOGIN' },
   emailError: byText('Please enter a valid email address'),
   passwordError: byText('Please enter at least 8 characters'),
+  successTitle: byText('Success'),
+  successMessage: byText('You are logged in!'),
 } satisfies Record<string, SelectorMap>;
 
 class LoginPage extends BasePage {
@@ -40,9 +40,8 @@ class LoginPage extends BasePage {
   }
 
   async verifySuccessAlert(): Promise<void> {
-    await driver.waitUntil(async () => (await driver.getAlertText().catch(() => '')) === SUCCESS_ALERT, {
-      timeoutMsg: `alert "${SUCCESS_ALERT}" was not shown`,
-    });
+    await expect(this.el(selectors.successTitle)).toBeDisplayed();
+    await expect(this.el(selectors.successMessage)).toBeDisplayed();
   }
 
   async verifyEmailError(): Promise<void> {
