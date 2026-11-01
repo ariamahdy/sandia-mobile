@@ -14,6 +14,7 @@ export type Env = {
   noReset: boolean;
   appId: string;
   appActivity?: string;
+  udid?: string;
   auth?: { username: string; password: string };
 };
 
@@ -53,6 +54,7 @@ const commonSchema = z.object({
       error: 'must be a port number from 1 to 65535',
     })
     .transform(Number),
+  UDID: z.preprocess(blankToUndefined, z.string().optional()),
   NO_RESET: oneOf(['true', 'false'], 'must be true or false').transform((value) => value === 'true'),
 });
 
@@ -83,6 +85,7 @@ export function loadEnv(platform: Platform, source: NodeJS.ProcessEnv = process.
     appiumHost: common.data.APPIUM_HOST,
     appiumPort: common.data.APPIUM_PORT,
     noReset: common.data.NO_RESET,
+    ...(common.data.UDID === undefined ? {} : { udid: common.data.UDID }),
     ...(auth?.success ? { auth: { username: auth.data.AUTH_USERNAME, password: auth.data.AUTH_PASSWORD } } : {}),
   };
 

@@ -6,6 +6,7 @@ export function buildCapabilities(platform: Platform, env: Env): WebdriverIO.Cap
     'appium:platformVersion': env.platformVersion,
     'appium:app': env.appPath,
     'appium:noReset': env.noReset,
+    ...(env.udid === undefined ? {} : { 'appium:udid': env.udid }),
   };
 
   if (platform === 'android') {

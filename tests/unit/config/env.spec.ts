@@ -124,6 +124,12 @@ describe('loadEnv', () => {
     ]);
   });
 
+  it('UDID is optional and passed through when set', () => {
+    assert.equal(loadEnv('android', android).udid, undefined);
+    assert.equal(loadEnv('android', { ...android, UDID: '  ' }).udid, undefined);
+    assert.equal(loadEnv('android', { ...android, UDID: 'R58N12345' }).udid, 'R58N12345');
+  });
+
   it('error text never contains the password value', () => {
     const password = 'do-not-print-me';
     try {
