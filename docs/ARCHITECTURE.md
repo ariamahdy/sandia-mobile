@@ -15,7 +15,7 @@ Each layer may import only from layers to its left, through the aliases `@config
 | `src/config` | env loading and validation (zod), capabilities builder, spec selection per AUT | anything above it |
 | `src/utils` | small pure helpers | anything above it, WebdriverIO globals |
 | `src/data` | factories that build unique test data | anything above it |
-| `src/helpers` | waits, keyboard handling, gestures only where a WebdriverIO built-in is insufficient | page knowledge |
+| `src/helpers` | keyboard and permission handling, gestures, only where a WebdriverIO built-in is insufficient (waits use `waitForDisplayed`/`waitForEnabled`/`waitUntil` with `timeoutMsg` directly, D1) | page knowledge |
 | `src/components` | elements scoped by a root selector: selector map, `verify*`, atomic actions | page knowledge |
 | `src/pages` | `base.page.ts`, one page object per screen, exported as an instance: selector map per platform, `verify*`, atomic actions | business flows (e.g. `login(user, pass)`) |
 | `src/hooks` | per-test app reset, failure screenshot and page source; registered in the WebdriverIO configs | business assertions |
