@@ -44,6 +44,11 @@ describe('buildCapabilities', () => {
     assert.equal(caps['appium:appActivity'], undefined);
   });
 
+  it('android grants runtime permissions at install, ios does not set it', () => {
+    assert.equal(buildCapabilities('android', env)['appium:autoGrantPermissions'], true);
+    assert.equal('appium:autoGrantPermissions' in buildCapabilities('ios', env), false);
+  });
+
   it('noReset mirrors NO_RESET', () => {
     assert.equal(buildCapabilities('android', env)['appium:noReset'], false);
     assert.equal(buildCapabilities('android', { ...env, noReset: true })['appium:noReset'], true);

@@ -13,6 +13,7 @@ export function buildCapabilities(platform: Platform, env: Env): WebdriverIO.Cap
     return {
       platformName: 'Android',
       'appium:automationName': 'UiAutomator2',
+      'appium:autoGrantPermissions': true,
       ...common,
       'appium:appPackage': env.appId,
       ...(env.appActivity === undefined ? {} : { 'appium:appActivity': env.appActivity }),
