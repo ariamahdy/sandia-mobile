@@ -49,6 +49,11 @@ describe('buildCapabilities', () => {
     assert.equal(buildCapabilities('android', { ...env, noReset: true })['appium:noReset'], true);
   });
 
+  it('sets appium:udid only when UDID is given', () => {
+    assert.equal('appium:udid' in buildCapabilities('android', env), false);
+    assert.equal(buildCapabilities('android', { ...env, udid: 'R58N12345' })['appium:udid'], 'R58N12345');
+  });
+
   it('device and app values come from env', () => {
     const caps = buildCapabilities('android', env);
     assert.equal(caps['appium:deviceName'], 'test-device');

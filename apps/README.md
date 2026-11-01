@@ -13,6 +13,17 @@ Facts about the public AUT. Binaries in this folder are gitignored; only this fi
 | Target SDK | 36 (Android 16); runtime permissions include camera, location, microphone and media |
 | Emulator used | AVD `sandia_api36`: `system-images;android-36;google_apis;arm64-v8a` rev 7, `pixel_6` profile, 2 GB RAM, emulator 37.2.13 |
 
+## Devices verified
+
+`npm run test:stability` (the demo suite three times, 15 tests) on 2026-11-01, both on Android 16 (API 36), with both devices connected and the target chosen by `UDID`:
+
+| Device | Kind | Result | Wall time | Per spec file (forms / login / swipe) |
+|---|---|---|---|---|
+| Xiaomi 15T Pro (HyperOS 3.0, 12 GB) | real device over USB | 15/15 | 156 s | about 6.5 s / 16.5 s / 15 s |
+| `sandia_api36` (pixel_6 profile, 2 GB) on an 8 GB Apple Silicon Mac | emulator | 15/15 | 225 s | about 8 s / 23.5 s / 22 s |
+
+No Xiaomi-specific setting was needed beyond USB debugging for this suite.
+
 ## Screens used by the suite
 
 Selectors were read from the page source on the emulator (2026-11-01). The app is React Native, so `accessibilityLabel` appears as `content-desc` on Android; the iOS entries assume the same label and are not verified yet (R2).
