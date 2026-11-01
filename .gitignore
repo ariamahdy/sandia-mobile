@@ -1,0 +1,14 @@
+node_modules/
+private/
+.env*
+!.env.example
+apps/*
+!apps/README.md
+test-results/
+allure-results/
+allure-report/
+shared-errors/
+.DS_Store
+*.apk
+*.ipa
+*.aab
