@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export type Platform = 'android' | 'ios';
 export type Aut = 'demo' | 'uat';
+export type Credentials = { username: string; password: string };
 
 export type Env = {
   aut: Aut;
@@ -15,7 +16,7 @@ export type Env = {
   appId: string;
   appActivity?: string;
   udid?: string;
-  auth?: { username: string; password: string };
+  auth?: Credentials;
 };
 
 export class EnvError extends Error {
@@ -64,6 +65,14 @@ const authSchema = z.object({ AUTH_USERNAME: text(), AUTH_PASSWORD: text() });
 
 const issuesOf = (result: { success: boolean; error?: z.ZodError }): string[] =>
   result.error?.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`) ?? [];
+
+export function loadAuth(source: NodeJS.ProcessEnv = process.env): Credentials {
+  const auth = authSchema.safeParse(source);
+  if (!auth.success) {
+    throw new Error(`Invalid auth environment:\n${issuesOf(auth).map((issue) => `- ${issue}`).join('\n')}`);
+  }
+  return { username: auth.data.AUTH_USERNAME, password: auth.data.AUTH_PASSWORD };
+}
 
 export function loadEnv(platform: Platform, source: NodeJS.ProcessEnv = process.env): Env {
   const common = commonSchema.safeParse(source);

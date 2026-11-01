@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { EnvError, loadEnv } from '@config';
+import { EnvError, loadAuth, loadEnv } from '@config';
 
 const issuesOf = (run: () => unknown): string[] => {
   try {
@@ -140,5 +140,30 @@ describe('loadEnv', () => {
       assert.ok(!error.message.includes(password));
       assert.ok(!error.issues.join('\n').includes(password));
     }
+  });
+});
+
+describe('loadAuth', () => {
+  it('returns the credentials from AUTH_USERNAME and AUTH_PASSWORD', () => {
+    assert.deepEqual(loadAuth({ AUTH_USERNAME: 'tester', AUTH_PASSWORD: 'secret-1' }), {
+      username: 'tester',
+      password: 'secret-1',
+    });
+  });
+
+  it('lists every missing key', () => {
+    assert.throws(() => loadAuth({}), /AUTH_USERNAME: missing[\s\S]*AUTH_PASSWORD: missing/);
+  });
+
+  it('treats a blank value as missing', () => {
+    assert.throws(() => loadAuth({ AUTH_USERNAME: ' ', AUTH_PASSWORD: 'secret-1' }), /AUTH_USERNAME: missing/);
+  });
+
+  it('never prints the password', () => {
+    assert.throws(
+      () => loadAuth({ AUTH_PASSWORD: 'secret-1' }),
+      (error: unknown) =>
+        error instanceof Error && error.message.includes('AUTH_USERNAME: missing') && !error.message.includes('secret-1'),
+    );
   });
 });
