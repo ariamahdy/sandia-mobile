@@ -1,6 +1,6 @@
 # Setup on Windows (company laptop)
 
-The company laptop runs only the private app (`AUT=uat`) on a real Android device, behind the VPN. None of the steps below has been run on Windows yet; they follow the macOS run in [SETUP-ANDROID.md](SETUP-ANDROID.md) and the Windows rules of this repository. Correct this file after the first real setup.
+The company laptop runs only the private apps (`AUT=uat`) on a real Android device, behind the VPN where an app needs it. None of the steps below has been run on Windows yet; they follow the macOS run in [SETUP-ANDROID.md](SETUP-ANDROID.md) and the Windows rules of this repository. Correct this file after the first real setup.
 
 ## 1. Tools
 
@@ -36,7 +36,7 @@ npm ci
 Set-Content .env 'AUT=uat'
 ```
 
-The root `.env` holds only `AUT=uat`; with it, `npm run doctor` also reads `private/.env`, as `npm run test:uat` does. The private values (app path, package, activity, device name, Android version, `AUTH_USERNAME`, `AUTH_PASSWORD`) go in `private/.env`. Then:
+The root `.env` holds only `AUT=uat`; with it, `npm run doctor` also reads `private/.env` and `private/.env.<UAT_APP>`, as `npm run test:uat` does. Shared values (device name, Android version, `AUTH_USERNAME`, `AUTH_PASSWORD`, `UAT_APP`) go in `private/.env`; each app's path, package and activity go in `private/.env.<app>`. Then:
 
 ```powershell
 npm run doctor

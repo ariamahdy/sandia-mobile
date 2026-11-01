@@ -6,7 +6,15 @@ import { evaluateChecks } from './lib/doctor-core.mjs';
 const readEnv = (path) => (existsSync(path) ? parseEnv(readFileSync(path, 'utf8')) : {});
 const rootEnv = readEnv('.env');
 const isUat = (process.env.AUT ?? rootEnv.AUT) === 'uat';
-const fileEnv = isUat ? { ...rootEnv, ...readEnv('private/.env') } : rootEnv;
+const APP_KEYS = ['APP_PATH', 'APP_PACKAGE', 'APP_ACTIVITY', 'BUNDLE_ID'];
+const uatEnv = () => {
+  const shared = Object.fromEntries(
+    Object.entries({ ...rootEnv, ...readEnv('private/.env') }).filter(([key]) => !APP_KEYS.includes(key)),
+  );
+  const app = (process.env.UAT_APP ?? shared.UAT_APP ?? '').trim();
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(app) ? { ...shared, ...readEnv(`private/.env.${app}`) } : shared;
+};
+const fileEnv = isUat ? uatEnv() : rootEnv;
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
 
 const checks = evaluateChecks({

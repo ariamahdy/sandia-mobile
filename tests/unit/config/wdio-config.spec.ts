@@ -15,21 +15,26 @@ const env: Env = {
 
 describe('specsFor', () => {
   it('demo selects tests/e2e/demo', () => {
-    assert.deepEqual(specsFor('demo', false), [DEMO_SPECS]);
+    assert.deepEqual(specsFor('demo', () => false), [DEMO_SPECS]);
     assert.equal(DEMO_SPECS, './tests/e2e/demo/**/*.spec.ts');
   });
 
-  it('uat selects private/tests/e2e', () => {
-    assert.deepEqual(specsFor('uat', true), ['./private/tests/e2e/**/*.spec.ts']);
+  it('uat selects the spec folder of UAT_APP', () => {
+    assert.deepEqual(specsFor('uat', () => true, 'app-a'), ['./private/tests/e2e/app-a/**/*.spec.ts']);
   });
 
   it('uat without private/ fails with a clear error', () => {
-    assert.throws(() => specsFor('uat', false), /AUT=uat needs the private\/ repository/);
+    assert.throws(() => specsFor('uat', () => false, 'app-a'), /AUT=uat needs the private\/ repository/);
+  });
+
+  it('uat without a spec folder for UAT_APP fails with a clear error', () => {
+    const exists = (path: string) => path === 'private';
+    assert.throws(() => specsFor('uat', exists, 'app-a'), /UAT_APP=app-a has no specs: create private\/tests\/e2e\/app-a\//);
   });
 });
 
 describe('buildWdioConfig', () => {
-  const config = buildWdioConfig('android', env, false);
+  const config = buildWdioConfig('android', env, () => false);
 
   it('runs the selected specs and exposes the demo suite for --repeat', () => {
     assert.deepEqual(config.specs, [DEMO_SPECS]);
