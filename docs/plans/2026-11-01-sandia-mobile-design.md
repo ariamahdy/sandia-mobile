@@ -1,6 +1,6 @@
 # sandia-mobile: design spec
 
-Date: 2026-11-01. Status: revision 2, awaiting owner review.
+Date: 2026-11-01. Status: revision 3 (WebdriverIO 10 findings applied), approved by owner.
 
 ## 1. Intent
 
@@ -40,14 +40,14 @@ sandia-mobile/
     config/       zod env, capabilities builder, spec selection per AUT
     utils/        small pure helpers
     data/         factories for unique test data
-    helpers/      gestures (W3C Actions / mobile: commands), waits, permission and keyboard handling
+    helpers/      waits, permission and keyboard handling; gestures only where a WDIO built-in is insufficient
     components/   reusable elements scoped by a root selector
     pages/        base.page.ts, one page object per screen, selector map per platform
     hooks/        per-test app reset, failure screenshot and page source
   tests/
     e2e/demo/<feature>/*.spec.ts   public suite
     unit/<layer>/*.spec.ts         mocha + tsx, no device
-  scripts/        guard, private-guard, verify-lint-rules, doctor, error-share, fetch-demo-app, stability, setup-private-hooks
+  scripts/        guard, private-guard, verify-lint-rules, doctor, error-share, fetch-demo-app, setup-private-hooks
   private/        gitignored, own git repo, mirrors src/ and tests/ (e2e, unit) for the private app
   .github/        workflows/ci.yml, workflows/stability.yml, dependabot.yml
 ```
@@ -69,8 +69,9 @@ Rules:
 - Page objects: lazy element getters through `BasePage`, a selector map keyed by platform, atomic actions and `verify*` methods only; no business flows.
 - Selector priority: accessibility id > resource-id / name > iOS predicate / class chain > UiAutomator selector > XPath (last resort, reason in the commit message).
 - Waits: `waitForDisplayed`, `waitForEnabled`, `waitUntil` with timeout and message. `browser.pause()` is a lint error.
-- Gestures live in `src/helpers`, built on W3C Actions or `mobile:` commands. `touchAction` and JSON Wire Protocol are banned.
-- Permission dialogs, onboarding and keyboard are handled explicitly in helpers or page objects; a handler is a no-op when nothing appears.
+- Gestures use WDIO built-ins from page objects: `driver.swipe` with a `scrollableElement` (never raw coordinates), `tap`, `scrollIntoView`. W3C Actions or `mobile:` commands in `src/helpers` only when a built-in is proven insufficient, reason stated. `touchAction` is removed in WDIO 10 (the types reject it) and JSON Wire Protocol is unsupported.
+- `$` stays strict (WDIO 10 default): a selector matching more than one element throws.
+- Permission dialogs use the built-ins `driver.acceptDialog()`/`driver.dismissDialog()`; onboarding and keyboard are handled explicitly in page objects. A handler is a no-op when nothing appears; a thin helper wraps the built-in only if it throws on an absent dialog.
 - Typed everything; `any` is a lint error.
 - Naming: files `kebab-case` with role suffix (`login.page.ts`), classes `PascalCase`, methods `camelCase`. E2E titles start with `E2E-<AREA>-NNN`, unique in the repo; unit test titles are plain sentences (as in `sandia-website`).
 
@@ -91,11 +92,11 @@ The platform is chosen by the command (`wdio.android.conf.ts` or `wdio.ios.conf.
 
 Capabilities come from one typed builder; every vendor capability uses the `appium:` prefix. Runner: WebdriverIO 10, Mocha, `spec` + `allure` reporters, `@wdio/appium-service` starting the Appium 3 server installed as a local devDependency. Drivers (`uiautomator2`, `xcuitest`) are installed at pinned versions by `npm run appium:setup`; `doctor` checks them.
 
-Spec selection: `AUT=demo` runs `tests/e2e/demo/**`; `AUT=uat` runs `private/tests/e2e/**` and fails with a clear message when `private/` is absent.
+Spec selection: `AUT=demo` runs `tests/e2e/demo/**` (also defined as suite `demo`); `AUT=uat` runs `private/tests/e2e/**` and fails with a clear message when `private/` is absent.
 
 State: `noReset` mirrors `NO_RESET`; a `beforeTest` hook terminates and activates the app (`APP_PACKAGE` or `BUNDLE_ID`), so tests are independent. `fullReset` only for a suite that needs it, reason stated in the suite. On failure the `afterTest` hook saves a screenshot and the page source into gitignored `test-results/`.
 
-Scripts: `typecheck`, `lint`, `verify:lint`, `test:unit`, `test:android`, `test:ios`, `test:stability` (Android suite three times in a row, stops on the first failure), `test:uat` and `test:uat:unit` (`node --env-file=private/.env`, cross-platform; never `AUT=uat npx ...`), `appium:setup`, `doctor`, `guard`, `error:share`, `fetch:demo-app`, `report`, `prepare`.
+Scripts: `typecheck`, `lint`, `verify:lint`, `test:unit`, `test:android`, `test:ios`, `test:stability` (`wdio run wdio.android.conf.ts --suite demo --repeat 3`, the built-in repeat, which needs `--suite` or `--spec`), `test:uat` and `test:uat:unit` (`node --env-file=private/.env`, cross-platform; never `AUT=uat npx ...`), `appium:setup`, `doctor`, `guard`, `error:share`, `fetch:demo-app`, `report`, `prepare`.
 
 `doctor` checks Node against `.nvmrc`, Java, `ANDROID_HOME`, `adb`, Appium and the pinned drivers, a connected emulator/device, and that `APP_PATH` exists (paths with spaces included); exits non-zero with one fix hint per failure. Windows uses `where`, macOS `which`.
 
@@ -112,7 +113,7 @@ Scripts: `typecheck`, `lint`, `verify:lint`, `test:unit`, `test:android`, `test:
 
 AUT: the official WebdriverIO native demo app. The APK/IPA is not committed; `fetch:demo-app` downloads a pinned release into `apps/` with a SHA-256 check. The release is chosen at implementation time from the project's releases page and recorded in `apps/README.md` and a decision row.
 
-E2E specs: login valid and invalid, form input, swipe, permission handler no-op, webview context. Unit tests (mocha + tsx): env schema, capabilities builder for both platforms, spec selection, selector maps complete for both platforms, swipe path builder, factories, guard, private-guard, doctor, page-source masking.
+E2E specs: login valid and invalid, form input, swipe, permission handler no-op, webview context. Unit tests (mocha + tsx): env schema, capabilities builder for both platforms, spec selection, selector maps complete for both platforms, factories, guard, private-guard, doctor, page-source masking.
 
 ## 7. Versions and uncertainty
 
@@ -129,7 +130,13 @@ Checked on the npm registry on 2026-11-01 (re-check at install; pin exactly, `sa
 | `typescript` | 7.0.2 latest | held at 6.0.3: `typescript-eslint` 8.72.1 peer `<6.1.0` (same as `sandia-website`) |
 | `mocha` 12.0.3, `tsx` 4.23.15 | | |
 
-Before Task 3 the WebdriverIO 10 and Appium 3 migration notes are read; APIs and lint rule names used in this spec (allure step API, `wdio/no-pause`, mocha rule names) are verified against current docs, never assumed.
+Verified on 2026-11-01 against the published 10.1.0 packages and the official migration guides (WebdriverIO v10, Appium 2 to 3):
+- Node `>=26.12.1` on the 26 line; WDIO packages declare `typeScriptVersion` 6.0.3. TypeScript 6 defaults `types` to `[]`, so `tsconfig.json` lists `node`, `mocha`, `@wdio/globals/types` and `@wdio/mocha-framework` explicitly.
+- `wdio` loads TypeScript configs through `tsx` with the `tsconfig.json` next to the config (aliases resolve); `tsx` does not type-check, so `typecheck` stays a separate gate.
+- Present: `driver.action`, `driver.swipe`, `acceptDialog`/`dismissDialog`, `terminateApp`/`activateApp`, `getPageSource`, `saveScreenshot`, `getContext`/`switchContext`, CLI `--repeat` (with `--suite`/`--spec`), allure `step(name, body)`. Removed: `touchAction`, `touchPerform`, `executeAsync`, JSON Wire. `$` is strict by default.
+- Lint: `eslint-plugin-wdio` exports only `flat/recommended` (`no-pause`, `no-debug`, `await-expect`, replaced by `no-floating-promise` when typescript-eslint is installed). `eslint-plugin-mocha` has `no-exclusive-tests`, `no-pending-tests` (rejects `.skip` and `this.skip()`, no comment escape by default) and `no-identical-title`; there is no `no-skipped-tests`.
+- Appium 3: unprefixed capabilities no longer select Appium; `--allow-insecure` needs a driver or `*` scope prefix.
+- Still to verify on a device (Task 8): whether `dismissDialog` throws when no dialog is shown.
 
 ## 8. Decisions recorded at creation (go into `docs/ARCHITECTURE.md`)
 
@@ -152,6 +159,8 @@ Before Task 3 the WebdriverIO 10 and Appium 3 migration notes are read; APIs and
 | D15 | `private/` pre-commit and pre-push hooks with private-guard | `simple-git-hooks` covers only the core repo | `scripts/private-hooks/*`, `tests/unit/scripts/private-guard.spec.ts` |
 | D16 | `error:share` shares only masked page source | Page source of a private app shows customer data | `tests/unit/scripts/error-share.spec.ts` |
 | D17 | Dependabot weekly, one PR per dependency, TypeScript ignored | Exact pins need an update signal | `.github/dependabot.yml` |
+| D18 | WDIO built-ins for swipe (`driver.swipe` with `scrollableElement`), permission dialogs (`acceptDialog`/`dismissDialog`) and repeated runs (`--repeat`); no custom swipe path builder or stability script | WDIO 10 ships these (D1); a custom builder duplicated `driver.swipe` | Review |
+| D19 | `$` stays strict (WDIO 10 default); no `strictSelectors: false`, no `{ strict: false }` | A selector matching several elements is a locator bug, as in `sandia-website` | `wdio.shared.conf.ts`, review |
 
 ## 9. Build order (one branch and commit per step)
 
@@ -160,7 +169,7 @@ Before Task 3 the WebdriverIO 10 and Appium 3 migration notes are read; APIs and
 3. `package.json`, `tsconfig.json` with aliases, Mocha + tsx, zod env.
 4. Capabilities builder, spec selection, WDIO configs, Appium setup.
 5. ESLint (layering, wdio, mocha, spec rules) and `verify:lint`.
-6. Helpers, base page, hooks.
+6. Waits, base page, hooks.
 7. Guard, private-guard and git hooks.
 8. Demo app, pages and specs.
 9. `doctor`, `error:share`, `test:stability`.
