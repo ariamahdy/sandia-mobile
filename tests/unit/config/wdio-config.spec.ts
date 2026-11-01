@@ -27,6 +27,10 @@ describe('specsFor', () => {
     assert.throws(() => specsFor('uat', () => false, 'app-a'), /AUT=uat needs the private\/ repository/);
   });
 
+  it('uat without UAT_APP fails with a clear error', () => {
+    assert.throws(() => specsFor('uat', () => true), /^Error: UAT_APP is missing in private\/\.env$/);
+  });
+
   it('uat without a spec folder for UAT_APP fails with a clear error', () => {
     const exists = (path: string) => path === 'private';
     assert.throws(() => specsFor('uat', exists, 'app-a'), /UAT_APP=app-a has no specs: create private\/tests\/e2e\/app-a\//);
@@ -39,6 +43,11 @@ describe('buildWdioConfig', () => {
   it('runs the selected specs and exposes the demo suite for --repeat', () => {
     assert.deepEqual(config.specs, [DEMO_SPECS]);
     assert.deepEqual(config.suites, { demo: [DEMO_SPECS] });
+  });
+
+  it('a uat run exposes its app folder as the uat suite for --repeat', () => {
+    const uat = buildWdioConfig('android', { ...env, aut: 'uat', uatApp: 'app-a' }, () => true);
+    assert.deepEqual(uat.suites, { demo: [DEMO_SPECS], uat: ['./private/tests/e2e/app-a/**/*.spec.ts'] });
   });
 
   it('uses one capability built for the platform', () => {

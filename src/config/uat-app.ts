@@ -17,6 +17,14 @@ export function uatSource(source: NodeJS.ProcessEnv, root: string): NodeJS.Proce
   const file = join(root, 'private', `.env.${app}`);
   if (!existsSync(file)) throw new Error(`UAT_APP=${app} needs private/.env.${app}`);
 
+  const sharedFile = join(root, 'private', '.env');
+  const leftover = existsSync(sharedFile)
+    ? Object.entries(parseEnv(readFileSync(sharedFile, 'utf8'))).find(
+        ([key, value]) => APP_KEYS.includes(key) && (value ?? '').trim() !== '',
+      )?.[0]
+    : undefined;
+  if (leftover !== undefined) throw new Error(`${leftover} is set in private/.env; move it to private/.env.${app}`);
+
   const appValues = parseEnv(readFileSync(file, 'utf8'));
   for (const key of Object.keys(appValues)) {
     if (!APP_KEYS.includes(key)) {

@@ -48,6 +48,24 @@ describe('uatSource', () => {
     }
   });
 
+  it('rejects an app value left in the private/.env file, without printing it', () => {
+    writeApp('app-a', 'APP_PACKAGE=com.example.a\n');
+    writeFileSync(join(root, 'private', '.env'), 'UAT_APP=app-a\nAPP_ACTIVITY=.OldActivity\n');
+    assert.throws(
+      () => uatSource(uat, root),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message === 'APP_ACTIVITY is set in private/.env; move it to private/.env.app-a' &&
+        !error.message.includes('.OldActivity'),
+    );
+  });
+
+  it('an empty app key in the private/.env file is not a leftover', () => {
+    writeApp('app-a', 'APP_PACKAGE=com.example.a\n');
+    writeFileSync(join(root, 'private', '.env'), 'UAT_APP=app-a\nAPP_PATH=\n');
+    assert.equal(uatSource(uat, root).APP_PACKAGE, 'com.example.a');
+  });
+
   it('names the missing app file', () => {
     assert.throws(() => uatSource({ ...uat, UAT_APP: 'app-b' }, root), /UAT_APP=app-b needs private\/\.env\.app-b/);
   });

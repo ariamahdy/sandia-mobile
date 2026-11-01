@@ -86,6 +86,7 @@ Test titles start with an ID, `E2E-<AREA>-NNN`, for example `E2E-LOGIN-001 valid
 | `npm run test:ios` | Same on iOS (configured, not run yet) |
 | `npm run test:stability` | Demo suite three times in a row (`--suite demo --repeat 3`) |
 | `npm run test:uat` | Private suite of `UAT_APP` on Android; loads `private/.env` (works in PowerShell and cmd) |
+| `npm run test:uat -- --suite uat --repeat 3` | Stability check of the `UAT_APP` suite (PowerShell: quote `'--'`) |
 | `npm run guard` | Leak guard (also runs on `git push`) |
 | `npm run error:share` | Masked copies of the page sources of the last run in `shared-errors/`, ready to hand over |
 

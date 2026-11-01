@@ -10,20 +10,20 @@ export function specsFor(aut: Aut, exists: Exists, uatApp?: string): string[] {
   if (!exists('private')) {
     throw new Error('AUT=uat needs the private/ repository. Clone it into private/, or set AUT=demo.');
   }
-  const folder = `private/tests/e2e/${uatApp ?? ''}`;
-  if (uatApp === undefined || !exists(folder)) {
-    throw new Error(`UAT_APP=${uatApp ?? ''} has no specs: create ${folder}/`);
-  }
+  if (uatApp === undefined) throw new Error('UAT_APP is missing in private/.env');
+  const folder = `private/tests/e2e/${uatApp}`;
+  if (!exists(folder)) throw new Error(`UAT_APP=${uatApp} has no specs: create ${folder}/`);
   return [`./${folder}/**/*.spec.ts`];
 }
 
 export type WdioConfig = WebdriverIO.Config & { capabilities: WebdriverIO.Capabilities[] };
 
 export function buildWdioConfig(platform: Platform, env: Env, exists: Exists): WdioConfig {
+  const specs = specsFor(env.aut, exists, env.uatApp);
   return {
     runner: 'local',
-    specs: specsFor(env.aut, exists, env.uatApp),
-    suites: { demo: [DEMO_SPECS] },
+    specs,
+    suites: env.aut === 'uat' ? { demo: [DEMO_SPECS], uat: specs } : { demo: [DEMO_SPECS] },
     maxInstances: 1,
     capabilities: [buildCapabilities(platform, env)],
     hostname: env.appiumHost,
