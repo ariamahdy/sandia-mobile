@@ -98,7 +98,7 @@ State: `noReset` mirrors `NO_RESET`; a `beforeTest` hook terminates and activate
 
 Scripts: `typecheck`, `lint`, `verify:lint`, `test:unit`, `test:android`, `test:ios`, `test:stability` (`wdio run wdio.android.conf.ts --suite demo --repeat 3`, the built-in repeat, which needs `--suite` or `--spec`), `test:uat` and `test:uat:unit` (`node --env-file=private/.env`, cross-platform; never `AUT=uat npx ...`), `appium:setup`, `doctor`, `guard`, `error:share`, `fetch:demo-app`, `report`, `prepare`.
 
-`doctor` checks Node against `.nvmrc`, Java, `ANDROID_HOME`, `adb`, Appium and the pinned drivers, a connected emulator/device, and that `APP_PATH` exists (paths with spaces included); exits non-zero with one fix hint per failure. Windows uses `where`, macOS `which`.
+`doctor` checks Node against `.nvmrc`, Java, `ANDROID_HOME`, `adb`, the Appium driver from `package.json` being installed, a connected emulator/device, and that `APP_PATH` exists (paths with spaces included); exits non-zero with one fix hint per failure. Windows uses `where`, macOS `which`.
 
 ## 5. Safety, hooks, CI
 
