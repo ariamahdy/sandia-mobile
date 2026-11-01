@@ -8,8 +8,8 @@ export function sharedConfig(platform: Platform): WdioConfig {
   return {
     ...buildWdioConfig(platform, env, existsSync(join(__dirname, 'private'))),
     beforeTest: () => resetApp(env.appId),
-    afterTest: async (test, _context, { passed }) => {
-      if (!passed) await saveFailureArtifacts(test.fullTitle);
+    afterTest: async (test: { title: string; parent?: string }, _context, { passed }) => {
+      if (!passed) await saveFailureArtifacts([test.parent, test.title].filter(Boolean).join(' '));
     },
   };
 }
