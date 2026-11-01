@@ -9,6 +9,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "verify:lint": "node scripts/verify-lint-rules.mjs",
     "test:unit": "mocha \"tests/unit/**/*.spec.ts\"",
     "test:uat:unit": "mocha \"private/tests/unit/**/*.spec.ts\"",
     "test:android": "wdio run wdio.android.conf.ts",
@@ -17,6 +19,7 @@
     "appium:setup": "node scripts/appium-setup.mjs"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/mocha": "10.0.10",
     "@types/node": "26.6.5",
     "@wdio/allure-reporter": "10.0.1",
@@ -27,9 +30,15 @@
     "@wdio/mocha-framework": "10.0.1",
     "@wdio/spec-reporter": "10.0.1",
     "appium": "3.8.0",
+    "eslint": "10.13.0",
+    "eslint-plugin-mocha": "12.0.2",
+    "eslint-plugin-wdio": "10.0.1",
+    "globals": "17.13.0",
+    "jiti": "2.7.0",
     "mocha": "12.0.3",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
+    "typescript-eslint": "8.71.2",
     "webdriverio": "10.0.1"
   },
   "dependencies": {
