@@ -16,7 +16,9 @@
     "test:android": "wdio run wdio.android.conf.ts",
     "test:ios": "wdio run wdio.ios.conf.ts",
     "test:uat": "node --env-file=private/.env node_modules/@wdio/cli/bin/wdio.js run wdio.android.conf.ts",
-    "appium:setup": "node scripts/appium-setup.mjs"
+    "appium:setup": "node scripts/appium-setup.mjs",
+    "guard": "node scripts/guard.mjs",
+    "prepare": "simple-git-hooks && node scripts/setup-private-hooks.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -35,7 +37,9 @@
     "eslint-plugin-wdio": "10.0.1",
     "globals": "17.13.0",
     "jiti": "2.7.0",
+    "lint-staged": "17.6.0",
     "mocha": "12.0.3",
+    "simple-git-hooks": "2.14.0",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.2",
@@ -43,6 +47,13 @@
   },
   "dependencies": {
     "zod": "4.6.7"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged && npm run typecheck",
+    "pre-push": "npm run guard"
+  },
+  "lint-staged": {
+    "*.{ts,mjs}": "eslint --max-warnings=0"
   },
   "overrides": {
     "shell-quote": "1.12.0"
