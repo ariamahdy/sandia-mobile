@@ -3,6 +3,8 @@ import { z } from 'zod';
 
 export type Platform = 'android' | 'ios';
 export type Aut = 'demo' | 'uat';
+export const UAT_APP_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 export type Credentials = { username: string; password: string };
 
 export type Env = {
@@ -17,6 +19,7 @@ export type Env = {
   appActivity?: string;
   udid?: string;
   auth?: Credentials;
+  uatApp?: string;
 };
 
 export class EnvError extends Error {
@@ -62,6 +65,9 @@ const commonSchema = z.object({
 const androidSchema = z.object({ APP_PACKAGE: text(), APP_ACTIVITY: text() });
 const iosSchema = z.object({ BUNDLE_ID: text() });
 const authSchema = z.object({ AUTH_USERNAME: text(), AUTH_PASSWORD: text() });
+const uatAppSchema = z.object({
+  UAT_APP: text().refine((value) => UAT_APP_PATTERN.test(value), { error: 'must be a lowercase name like app-a' }),
+});
 
 const issuesOf = (result: { success: boolean; error?: z.ZodError }): string[] =>
   result.error?.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`) ?? [];
@@ -78,11 +84,18 @@ export function loadEnv(platform: Platform, source: NodeJS.ProcessEnv = process.
   const common = commonSchema.safeParse(source);
   const android = androidSchema.safeParse(source);
   const ios = iosSchema.safeParse(source);
-  const auth = source.AUT?.trim() === 'uat' ? authSchema.safeParse(source) : undefined;
+  const isUat = source.AUT?.trim() === 'uat';
+  const auth = isUat ? authSchema.safeParse(source) : undefined;
+  const uatApp = isUat ? uatAppSchema.safeParse(source) : undefined;
   const device = platform === 'android' ? android : ios;
 
-  const issues = [...issuesOf(common), ...issuesOf(device), ...(auth ? issuesOf(auth) : [])];
-  if (!common.success || !device.success || (auth && !auth.success)) {
+  const issues = [
+    ...issuesOf(common),
+    ...issuesOf(device),
+    ...(auth ? issuesOf(auth) : []),
+    ...(uatApp ? issuesOf(uatApp) : []),
+  ];
+  if (!common.success || !device.success || (auth && !auth.success) || (uatApp && !uatApp.success)) {
     throw new EnvError(platform, issues);
   }
 
@@ -96,6 +109,7 @@ export function loadEnv(platform: Platform, source: NodeJS.ProcessEnv = process.
     noReset: common.data.NO_RESET,
     ...(common.data.UDID === undefined ? {} : { udid: common.data.UDID }),
     ...(auth?.success ? { auth: { username: auth.data.AUTH_USERNAME, password: auth.data.AUTH_PASSWORD } } : {}),
+    ...(uatApp?.success ? { uatApp: uatApp.data.UAT_APP } : {}),
   };
 
   if (platform === 'android' && android.success) {

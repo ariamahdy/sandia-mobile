@@ -46,7 +46,8 @@ The platform is chosen by the command (`test:android` or `test:ios`), not by a v
 | `BUNDLE_ID` | iOS only |
 | `NO_RESET` | `true` or `false`, always explicit |
 | `UDID` | optional; the serial from `adb devices` when more than one device is connected |
-| `AUTH_USERNAME`, `AUTH_PASSWORD` | required when `AUT=uat`; they belong in `private/.env` |
+| `AUTH_USERNAME`, `AUTH_PASSWORD` | required when `AUT=uat`; one account for every private app, in `private/.env` |
+| `UAT_APP` | required when `AUT=uat`: which app in `private/` to run (lowercase, e.g. `app-a`); its `APP_PATH`, `APP_PACKAGE`, `APP_ACTIVITY` and `BUNDLE_ID` come only from `private/.env.<UAT_APP>` |
 
 ## Project layout
 
@@ -84,13 +85,14 @@ Test titles start with an ID, `E2E-<AREA>-NNN`, for example `E2E-LOGIN-001 valid
 | `npm run test:android` | Demo suite (or the private suite with `AUT=uat`) on Android |
 | `npm run test:ios` | Same on iOS (configured, not run yet) |
 | `npm run test:stability` | Demo suite three times in a row (`--suite demo --repeat 3`) |
-| `npm run test:uat` | Private suite on Android; loads `private/.env` (works in PowerShell and cmd) |
+| `npm run test:uat` | Private suite of `UAT_APP` on Android; loads `private/.env` (works in PowerShell and cmd) |
+| `npm run test:uat -- --suite uat --repeat 3` | Stability check of the `UAT_APP` suite (PowerShell: quote `'--'`) |
 | `npm run guard` | Leak guard (also runs on `git push`) |
 | `npm run error:share` | Masked copies of the page sources of the last run in `shared-errors/`, ready to hand over |
 
 ## Private extension
 
-`private/` is gitignored and is its own git repository for a private app. Its values go in `private/.env`; run it with `npm run test:uat` and `npm run test:uat:unit`, never `AUT=uat npx ...`. `npm install` sets its git hooks. Share a failure with `npm run error:share`: only masked page sources are copied, never screenshots or logs. Details: [Private extension point](docs/ARCHITECTURE.md#private-extension-point).
+`private/` is gitignored and is its own git repository for one or more private apps. Shared values (device, Appium, `AUTH_*`, `UAT_APP`) go in `private/.env`, the values of each app in `private/.env.<app>`, and its specs in `private/tests/e2e/<app>/`. Switch apps by changing `UAT_APP`; run it with `npm run test:uat` and `npm run test:uat:unit`, never `AUT=uat npx ...`. `npm install` sets its git hooks. Share a failure with `npm run error:share`: only masked page sources are copied, never screenshots or logs. Details: [Private extension point](docs/ARCHITECTURE.md#private-extension-point).
 
 ## Architecture
 

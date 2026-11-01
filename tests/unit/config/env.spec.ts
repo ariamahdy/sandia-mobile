@@ -87,15 +87,30 @@ describe('loadEnv', () => {
     assert.equal(env.appActivity, undefined);
   });
 
-  it('AUT=uat requires AUTH_USERNAME and AUTH_PASSWORD', () => {
+  it('AUT=uat requires AUTH_USERNAME, AUTH_PASSWORD and UAT_APP', () => {
     const issues = issuesOf(() => loadEnv('android', { ...android, AUT: 'uat' }));
-    assert.deepEqual(issues, ['AUTH_USERNAME: missing', 'AUTH_PASSWORD: missing']);
-    const env = loadEnv('android', { ...android, AUT: 'uat', AUTH_USERNAME: 'tester', AUTH_PASSWORD: 'secret-1' });
+    assert.deepEqual(issues, ['AUTH_USERNAME: missing', 'AUTH_PASSWORD: missing', 'UAT_APP: missing']);
+    const env = loadEnv('android', {
+      ...android,
+      AUT: 'uat',
+      AUTH_USERNAME: 'tester',
+      AUTH_PASSWORD: 'secret-1',
+      UAT_APP: 'app-a',
+    });
     assert.deepEqual(env.auth, { username: 'tester', password: 'secret-1' });
   });
 
-  it('AUT=demo does not require credentials', () => {
+  it('AUT=demo does not require credentials and ignores UAT_APP', () => {
     assert.equal(loadEnv('android', android).auth, undefined);
+    assert.equal(loadEnv('android', { ...android, UAT_APP: 'app-a' }).uatApp, undefined);
+  });
+
+  it('AUT=uat passes UAT_APP through and rejects a path', () => {
+    const uat = { ...android, AUT: 'uat', AUTH_USERNAME: 'tester', AUTH_PASSWORD: 'secret-1' };
+    assert.equal(loadEnv('android', { ...uat, UAT_APP: 'app-a' }).uatApp, 'app-a');
+    assert.deepEqual(issuesOf(() => loadEnv('android', { ...uat, UAT_APP: '../x' })), [
+      'UAT_APP: must be a lowercase name like app-a',
+    ]);
   });
 
   it('AUT must be demo or uat', () => {
