@@ -207,31 +207,39 @@ const cases = [
 ];
 
 const eslint = new ESLint();
-let failed = 0;
+const prepared = cases.map((c, index) => ({
+  ...c,
+  filePath: join(dirname(c.filePath), basename(c.filePath).replace(/^x/, `__verify_lint_${String(index)}__`)),
+}));
+const createdDirs = prepared
+  .map((c) => mkdirSync(dirname(c.filePath), { recursive: true }))
+  .filter((dir) => dir !== undefined);
+for (const c of prepared) writeFileSync(c.filePath, c.code);
 
-for (const [index, c] of cases.entries()) {
-  const filePath = join(dirname(c.filePath), basename(c.filePath).replace(/^x/, `__verify_lint_${index}__`));
-  const createdDir = mkdirSync(dirname(filePath), { recursive: true });
-  let errors;
-  try {
-    writeFileSync(filePath, c.code);
-    const [result] = await eslint.lintText(c.code, { filePath });
-    errors = result.messages.filter((m) => m.severity === 2 || m.fatal);
-  } catch (error) {
-    failed += 1;
-    console.error(`FAIL ${c.name}: ${error instanceof Error ? error.message : String(error)}`);
-    continue;
-  } finally {
-    rmSync(createdDir ?? filePath, { recursive: true, force: true });
+let failed = 0;
+try {
+  for (const c of prepared) {
+    let errors;
+    try {
+      const [result] = await eslint.lintText(c.code, { filePath: c.filePath });
+      errors = result.messages.filter((m) => m.severity === 2 || m.fatal);
+    } catch (error) {
+      failed += 1;
+      console.error(`FAIL ${c.name}: ${error instanceof Error ? error.message : String(error)}`);
+      continue;
+    }
+    const ruleIds = errors.map((m) => m.ruleId ?? `fatal: ${m.message}`);
+    const ok = c.expect === null ? errors.length === 0 : ruleIds.includes(c.expect);
+    if (ok) {
+      console.log(`PASS ${c.name}`);
+    } else {
+      failed += 1;
+      console.error(`FAIL ${c.name}: expected ${c.expect ?? 'no errors'}, got [${ruleIds.join(', ')}]`);
+    }
   }
-  const ruleIds = errors.map((m) => m.ruleId ?? `fatal: ${m.message}`);
-  const ok = c.expect === null ? errors.length === 0 : ruleIds.includes(c.expect);
-  if (ok) {
-    console.log(`PASS ${c.name}`);
-  } else {
-    failed += 1;
-    console.error(`FAIL ${c.name}: expected ${c.expect ?? 'no errors'}, got [${ruleIds.join(', ')}]`);
-  }
+} finally {
+  for (const c of prepared) rmSync(c.filePath, { force: true });
+  for (const dir of createdDirs) rmSync(dir, { recursive: true, force: true });
 }
 
 if (failed > 0) {
