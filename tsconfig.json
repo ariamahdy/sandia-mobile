@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node", "mocha"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@config": ["./src/config/index.ts"],
+      "@config/*": ["./src/config/*"],
+      "@utils": ["./src/utils/index.ts"],
+      "@utils/*": ["./src/utils/*"],
+      "@data": ["./src/data/index.ts"],
+      "@data/*": ["./src/data/*"],
+      "@helpers": ["./src/helpers/index.ts"],
+      "@helpers/*": ["./src/helpers/*"],
+      "@components": ["./src/components/index.ts"],
+      "@components/*": ["./src/components/*"],
+      "@pages": ["./src/pages/index.ts"],
+      "@pages/*": ["./src/pages/*"],
+      "@hooks": ["./src/hooks/index.ts"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@uat/*": ["./private/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts", "private/**/*.ts", "*.conf.ts", "*.config.ts"]
+}
