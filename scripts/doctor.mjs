@@ -3,7 +3,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { parseEnv } from 'node:util';
 import { evaluateChecks } from './lib/doctor-core.mjs';
 
-const fileEnv = existsSync('.env') ? parseEnv(readFileSync('.env', 'utf8')) : {};
+const readEnv = (path) => (existsSync(path) ? parseEnv(readFileSync(path, 'utf8')) : {});
+const rootEnv = readEnv('.env');
+const isUat = (process.env.AUT ?? rootEnv.AUT) === 'uat';
+const fileEnv = isUat ? { ...rootEnv, ...readEnv('private/.env') } : rootEnv;
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
 
 const checks = evaluateChecks({
