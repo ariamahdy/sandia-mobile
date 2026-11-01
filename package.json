@@ -17,6 +17,7 @@
     "test:ios": "wdio run wdio.ios.conf.ts",
     "test:uat": "node --env-file=private/.env node_modules/@wdio/cli/bin/wdio.js run wdio.android.conf.ts",
     "appium:setup": "node scripts/appium-setup.mjs",
+    "fetch:demo-app": "node scripts/fetch-demo-app.mjs",
     "guard": "node scripts/guard.mjs",
     "prepare": "simple-git-hooks && node scripts/setup-private-hooks.mjs"
   },
