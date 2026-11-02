@@ -52,12 +52,12 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 
 ## Definition of done
 - `npm run typecheck`: 0 errors. `npm run lint`: 0 errors/warnings. `npm run verify:lint` and `npm run guard` pass. `npm run test:unit` passes.
-- With an emulator: `npm run doctor` is green and `npm run test:stability` (demo suite, `--repeat 3`) passes with no flakes.
+- With a real device: `npm run doctor` is green and `npm run test:stability` (demo suite, `--repeat 3`) passes with no flakes.
 - No `pause`, no `any`, no hard-coded secrets or device names, no layering violation, no private detail in public code.
 
 ## Environment
-- Personal Mac: Android emulator (arm64 image on Apple Silicon); iOS later, once Xcode is set up. Typecheck, lint and unit tests need no device.
-- Company Windows laptop: real device or emulator, runs only `AUT=uat`. Shared private values belong in `private/.env` (`AUTH_USERNAME`, `AUTH_PASSWORD`, device values, `UAT_APP`); each app's values in `private/.env.<app>` and its specs in `private/tests/e2e/<app>/` (D28). Run with `npm run test:uat` (cross-platform; never `AUT=uat npx ...`, which fails in PowerShell/cmd).
+- Personal Mac: real Android device over USB (no local emulator since 2026-11-02; CI keeps its own); iOS later, once Xcode is set up. Typecheck, lint and unit tests need no device.
+- Company Windows laptop: real device, runs only `AUT=uat`. Shared private values belong in `private/.env` (`AUTH_USERNAME`, `AUTH_PASSWORD`, device values, `UAT_APP`); each app's values in `private/.env.<app>` and its specs in `private/tests/e2e/<app>/` (D28). Run with `npm run test:uat` (cross-platform; never `AUT=uat npx ...`, which fails in PowerShell/cmd).
 - A private app behind the VPN cannot be run by Claude; one reachable without VPN can be run on the personal Mac. Never claim a private or emulator run passed that Claude did not execute; otherwise give the command to run.
 - Node 26 (`.nvmrc`). Run `npm run doctor` first when a device run fails to start.
 
