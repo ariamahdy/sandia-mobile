@@ -14,7 +14,7 @@ Native and hybrid Android app tests with WebdriverIO 10, TypeScript (strict) and
 
 - Node 26 (`.nvmrc`)
 - A JDK (`java -version` must work)
-- Android SDK with `platform-tools`, and either the emulator with an API 36 image or a real Android device with USB debugging
+- Android SDK with `platform-tools`, and a real Android device with USB debugging (an emulator with an API 36 image also works; CI uses one)
 - macOS or Windows. Setup: [Android on macOS](docs/SETUP-ANDROID.md), [Windows](docs/SETUP-WINDOWS.md), [iOS](docs/SETUP-IOS.md) (not run yet)
 
 ## Quick start
@@ -102,7 +102,7 @@ Layering, test isolation, the private extension point and the decision log live 
 
 - `npm run typecheck`: 0 errors. `npm run lint`: 0 errors and 0 warnings.
 - `npm run verify:lint`, `npm run guard` and `npm run test:unit` pass.
-- With a device or emulator, `npm run doctor` is green and `npm run test:stability` passes with no flaky tests.
+- With a device, `npm run doctor` is green and `npm run test:stability` passes with no flaky tests.
 - No `pause`, no `any`, no hard-coded secrets or device names, no layering violation.
 
 ## CI
