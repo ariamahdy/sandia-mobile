@@ -29,11 +29,11 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 ## Rules (apply to every change)
 - Layering, no cycles: `config <- utils <- data <- helpers/components <- pages <- hooks <- tests`, imported through aliases (`@config`, `@pages`, ...); no `../` imports.
 - Page objects: selector maps per platform, `verify*` and atomic actions only. No business-flow methods. Components take a root selector. Pages are exported instances; never `new` them in tests.
-- Specs import only `@pages`, `@data` and `@wdio/globals`; no raw selectors, no conditionals. Each action is wrapped in a labelled allure `step`. Not lint-enforced; check it in review.
+- Specs import only `@pages`, `@data` and `@wdio/globals` (exception: a shared `./<name>.flow` in the same folder, D32); no raw selectors, no conditionals. Each action is wrapped in a labelled allure `step`. Not lint-enforced; check it in review.
 - Selector priority: accessibility id > resource-id/name > iOS predicate/class chain > UiAutomator > XPath (last resort, reason in commit message). `$` stays strict.
 - Wait with `waitForDisplayed`/`waitForEnabled`/`waitUntil` and a message; no `reverse: true` (lint, D30). Never `pause` or manual sleeps. Never fix flakiness with timeouts or more retries.
 - Gestures through `driver.swipe` with a `scrollableElement`, never raw coordinates.
-- Tests independent: `NO_RESET` explicit, app terminated and activated before each test, no order dependence, no shared mutable state.
+- Tests independent: `NO_RESET` explicit, app data cleared once per spec file and the app terminated and activated before each test (D31), no order dependence, no shared mutable state.
 - Vendor capabilities always carry the `appium:` prefix. No hard-coded secrets, hosts, device names or paths; everything from env/config.
 - Strict types, no `any`, ESLint-clean, compact, no code comments (one exception: the version comment after a SHA-pinned action).
 
