@@ -204,6 +204,24 @@ const cases = [
     code: "describe.only('suite', () => {\n  it('case', () => undefined);\n});\n",
     expect: 'mocha/no-exclusive-tests',
   },
+  {
+    name: 'pages must not wait with reverse: true',
+    filePath: 'src/pages/x.ts',
+    code: "const wait = (el: { waitForDisplayed(o: object): Promise<unknown> }) => el.waitForDisplayed({ reverse: true });\nexport { wait };\n",
+    expect: syntax,
+  },
+  {
+    name: 'private pages must not wait with reverse: true',
+    filePath: 'private/src/pages/x.ts',
+    code: "const wait = (el: { waitForDisplayed(o: object): Promise<unknown> }) => el.waitForDisplayed({ reverse: true });\nexport { wait };\n",
+    expect: syntax,
+  },
+  {
+    name: 'pages may wait without reverse',
+    filePath: 'src/pages/x.ts',
+    code: "const wait = (el: { waitForDisplayed(o: object): Promise<unknown> }) => el.waitForDisplayed({ timeoutMsg: 'shown' });\nexport { wait };\n",
+    expect: null,
+  },
 ];
 
 const eslint = new ESLint();
