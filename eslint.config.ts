@@ -49,6 +49,12 @@ const noVoid = {
   message: 'Await promises in tests; void hides an unawaited assertion.',
 };
 
+const noReverseWait = {
+  selector: "CallExpression[callee.property.name=/^waitFor/] Property[key.name='reverse'][value.value=true]",
+  message:
+    'No reverse waits: the element goes stale when the screen changes. Poll a fresh lookup instead: driver.waitUntil(async () => !(await this.el(selector).isExisting()), { timeoutMsg }).',
+};
+
 const testRules: Linter.Config['rules'] = { 'no-restricted-syntax': ['error', noVoid] };
 
 const specRules: Linter.Config['rules'] = {
@@ -91,6 +97,7 @@ export default defineConfig(
       'mocha/no-identical-title': 'error',
     },
   },
+  { files: ['src/**/*.ts', 'private/src/**/*.ts'], rules: { 'no-restricted-syntax': ['error', noReverseWait] } },
   restrict(['src/config/**/*.ts'], ['utils', 'data', 'helpers', 'components', 'pages', 'hooks']),
   restrict(['src/utils/**/*.ts'], ['data', 'helpers', 'components', 'pages', 'hooks']),
   restrict(['src/data/**/*.ts'], ['helpers', 'components', 'pages', 'hooks']),
