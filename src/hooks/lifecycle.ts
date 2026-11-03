@@ -8,7 +8,6 @@ type SaveArtifacts = (title: string) => Promise<unknown>;
 
 export type AppLifecycle = {
   before: () => Promise<void>;
-  beforeTest: () => Promise<void>;
   afterTest: (test: HookTest, context: unknown, result: HookResult) => Promise<void>;
   afterHook: (test: HookTest, context: unknown, result: HookResult) => Promise<void>;
 };
@@ -24,8 +23,33 @@ export function appLifecycle(
   };
   return {
     before: () => resetApp(appId, clearData, app),
-    beforeTest: () => resetApp(appId, false, app),
     afterTest: saveOnFailure,
     afterHook: saveOnFailure,
+  };
+}
+
+type HookContext = { currentTest?: { title: string; parent?: { title: string } } };
+
+export function rootHooks(
+  appId: () => string,
+  app: AppDriver = driver,
+  save: SaveArtifacts = saveFailureArtifacts,
+): { beforeEach: (this: HookContext) => Promise<void> } {
+  return {
+    async beforeEach(this: HookContext): Promise<void> {
+      try {
+        await resetApp(appId(), false, app);
+      } catch (error) {
+        const title = [this.currentTest?.parent?.title, this.currentTest?.title, 'reset'].filter(Boolean).join(' ');
+        const saveError = await save(title).then(
+          () => undefined,
+          (failure: unknown) => failure,
+        );
+        if (saveError === undefined) throw error;
+        throw new AggregateError([error, saveError], 'The app reset failed and its failure artifacts could not be saved', {
+          cause: error,
+        });
+      }
+    },
   };
 }
