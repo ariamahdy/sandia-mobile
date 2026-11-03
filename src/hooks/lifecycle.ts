@@ -35,8 +35,13 @@ export function rootHooks(
   app: AppDriver = driver,
   save: SaveArtifacts = saveFailureArtifacts,
 ): { beforeEach: (this: HookContext) => Promise<void> } {
+  let firstTestOfSpec = true;
   return {
     async beforeEach(this: HookContext): Promise<void> {
+      if (firstTestOfSpec) {
+        firstTestOfSpec = false;
+        return;
+      }
       try {
         await resetApp(appId(), false, app);
       } catch (error) {
