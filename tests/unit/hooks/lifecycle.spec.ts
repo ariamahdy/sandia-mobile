@@ -70,17 +70,28 @@ describe('appLifecycle', () => {
 const context = { currentTest: { title: 'E2E-X-001 works', parent: { title: 'Suite' } } };
 
 describe('rootHooks', () => {
-  it('never clears the app data before a test', async () => {
+  it('leaves the first test of a spec file on the screen its before hooks reached', async () => {
     const { driver, calls } = fakeDriver();
     await rootHooks(() => 'app', driver).beforeEach.call(context);
-    assert.deepEqual(calls, ['terminate app', 'activate app']);
+    assert.deepEqual(calls, []);
+  });
+
+  it('resets every later test without clearing the app data', async () => {
+    const { driver, calls } = fakeDriver();
+    const hooks = rootHooks(() => 'app', driver);
+    await hooks.beforeEach.call(context);
+    await hooks.beforeEach.call(context);
+    await hooks.beforeEach.call(context);
+    assert.deepEqual(calls, ['terminate app', 'activate app', 'terminate app', 'activate app']);
   });
 
   it('fails the test and saves the artifacts when the app cannot be reset', async () => {
     const { driver } = fakeDriver(new Error("'app' is still running after 500ms timeout"));
     const { saved, save } = recorder();
+    const hooks = rootHooks(() => 'app', driver, save);
+    await hooks.beforeEach.call(context);
     await assert.rejects(
-      rootHooks(() => 'app', driver, save).beforeEach.call(context),
+      hooks.beforeEach.call(context),
       /still running after 500ms timeout/,
     );
     assert.deepEqual(saved, ['Suite E2E-X-001 works reset']);
@@ -89,7 +100,9 @@ describe('rootHooks', () => {
   it('reports both errors when the artifacts cannot be saved either', async () => {
     const { driver } = fakeDriver(new Error('reset broke'));
     const save = () => Promise.reject(new Error('no session'));
-    await assert.rejects(rootHooks(() => 'app', driver, save).beforeEach.call(context), (error: unknown) => {
+    const hooks = rootHooks(() => 'app', driver, save);
+    await hooks.beforeEach.call(context);
+    await assert.rejects(hooks.beforeEach.call(context), (error: unknown) => {
       assert.ok(error instanceof AggregateError);
       assert.deepEqual(
         error.errors.map((inner: Error) => inner.message),
