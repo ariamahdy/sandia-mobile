@@ -53,6 +53,7 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 ## Definition of done
 - `npm run typecheck`: 0 errors. `npm run lint`: 0 errors/warnings. `npm run verify:lint` and `npm run guard` pass. `npm run test:unit` passes.
 - With a real device: `npm run doctor` is green and `npm run test:stability` (demo suite, `--repeat 3`) passes with no flakes.
+- A change to `package.json` or `package-lock.json`: `npm ci` succeeds in an empty folder holding only those two files (and `.npmrc`) before the commit, so the lockfile CI installs is complete (review).
 - No `pause`, no `any`, no hard-coded secrets or device names, no layering violation, no private detail in public code.
 
 ## Environment
