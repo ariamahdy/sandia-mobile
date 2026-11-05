@@ -30,6 +30,8 @@ npm run test:android
 
 Fill `DEVICE_NAME` and `PLATFORM_VERSION` in `.env` first (for the emulator in the setup guide: `sandia_api36` and `16`). `npm ci` also installs the Appium UiAutomator2 driver, which is a pinned devDependency. `npm run doctor` checks Node, Java, the SDK, `adb`, a connected device, the driver and `APP_PATH`, with one fix hint per failure.
 
+Turn on Do Not Disturb on a real device before a run (manual, not checked by `doctor`): a notification banner takes taps meant for the top of the app screen, and the test then fails on a step it never reached.
+
 After a run, failures leave a screenshot and the page source in `test-results/`; the Appium log is `test-results/wdio-appium.log`. `allure-results/` can be opened with the Allure command line, which is not a dependency of this repository.
 
 ## Configuration
