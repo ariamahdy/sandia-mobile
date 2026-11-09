@@ -29,10 +29,10 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 ## Rules (apply to every change)
 - Layering, no cycles: `config <- utils <- data <- helpers/components <- pages <- hooks <- tests`, imported through aliases (`@config`, `@pages`, ...); no `../` imports.
 - Page objects: selector maps per platform, `verify*` and atomic actions only. No business-flow methods. Components take a root selector. Pages are exported instances; never `new` them in tests.
-- Specs import only `@pages`, `@data` and `@wdio/globals` (exception: a shared `./<name>.flow` in the same folder, D32); no raw selectors, no conditionals. Each action is wrapped in a labelled allure `step`. Not lint-enforced; check it in review.
+- Specs import only `@pages`, `@data`, `@wdio/globals`, `@wdio/allure-reporter` (private specs: `@uat/*` instead of `@pages`/`@data`) and flows in the same folder (`./<name>.flow`, one per menu, D32); no raw selectors, no `if`/ternary branches (loops over data are allowed). Each action is wrapped in a labelled allure `step`. Not lint-enforced; check it in review.
 - Selector priority: accessibility id > resource-id/name > iOS predicate/class chain > UiAutomator > XPath (last resort, reason in commit message). `$` stays strict.
 - Wait with `waitForDisplayed`/`waitForEnabled`/`waitUntil` and a message; no `reverse: true` (lint, D30). Never `pause` or manual sleeps. Never fix flakiness with timeouts or more retries.
-- Gestures through `driver.swipe` with a `scrollableElement`, never raw coordinates.
+- Gestures through `driver.swipe` or `scrollIntoView` with a `scrollableElement` and an explicit `percent` of at most 0.6 (a larger swipe starts in the Android gesture area and sends the app home, D38), never raw coordinates.
 - Tests independent: `NO_RESET` explicit, app data cleared once per spec file and the app terminated and activated before each test (D31), no order dependence, no shared mutable state.
 - Vendor capabilities always carry the `appium:` prefix. No hard-coded secrets, hosts, device names or paths; everything from env/config.
 - Strict types, no `any`, ESLint-clean, compact, no code comments (one exception: the version comment after a SHA-pinned action).
@@ -45,7 +45,7 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 - A new rule states its enforcer (lint, test, guard, types) or is marked "review" (manual).
 
 ## Test design and stability
-- Use the lowest level that proves the behavior: unit, then E2E on a device. E2E covers user-visible flows only; one test, one behavior.
+- Use the lowest level that proves the behavior: unit, then E2E on a device. E2E covers user-visible flows only; one test, one behavior. Exception: a combined E2E that chains the behaviors of its own per-step TCs, when I ask for one (D37).
 - A flaky test is a bug. Fix the root cause or delete the test in its own commit with the reason. No `.only`, `.skip` or `this.skip()` (lint).
 - Every failure must be diagnosable without a rerun from the spec log, allure steps, the failure screenshot and page source in `test-results/`, and the Appium log. No swallowed errors.
 - A bug class that can recur gets a framework-level prevention (hook, lint rule with a `verify:lint` case, or helper).
@@ -53,11 +53,12 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 ## Definition of done
 - `npm run typecheck`: 0 errors. `npm run lint`: 0 errors/warnings. `npm run verify:lint` and `npm run guard` pass. `npm run test:unit` passes.
 - With a real device: `npm run doctor` is green and `npm run test:stability` (demo suite, `--repeat 3`) passes with no flakes.
-- A change to `package.json` or `package-lock.json`: `npm ci` succeeds in an empty folder holding only those two files (and `.npmrc`) before the commit, so the lockfile CI installs is complete (review).
+- A change to `package.json` or `package-lock.json`: `npm ci --ignore-scripts` succeeds in an empty folder holding only those two files (and `.npmrc`) before the commit, so the lockfile CI installs is complete; without `--ignore-scripts` the `prepare` script fails there because `scripts/` is missing (review).
 - No `pause`, no `any`, no hard-coded secrets or device names, no layering violation, no private detail in public code.
 
 ## Environment
 - Personal Mac: real Android device over USB (no local emulator since 2026-11-02; CI keeps its own); iOS later, once Xcode is set up. Typecheck, lint and unit tests need no device.
+- Before any run or tap on my phone (one TC, a probe, `--repeat`), give the command and an estimate and wait for my yes. During a run the phone stays on Do Not Disturb and the host stays awake (`caffeinate -i` on macOS); a single command that stalls 10-20 s points to host sleep first (`pmset -g log`).
 - Company Windows laptop: real device, runs only `AUT=uat`. Shared private values belong in `private/.env` (`AUTH_USERNAME`, `AUTH_PASSWORD`, device values, `UAT_APP`); each app's values in `private/.env.<app>` and its specs in `private/tests/e2e/<app>/` (D28). Run with `npm run test:uat` (cross-platform; never `AUT=uat npx ...`, which fails in PowerShell/cmd).
 - A private app behind the VPN cannot be run by Claude; one reachable without VPN can be run on the personal Mac. Never claim a private or emulator run passed that Claude did not execute; otherwise give the command to run.
 - Node 26 (`.nvmrc`). Run `npm run doctor` first when a device run fails to start.
@@ -73,6 +74,8 @@ When asked to review or audit: score 1-5 per dimension (layering, isolation, sta
 - The public repo never contains private app names, hosts, package or bundle ids, selectors, field names, APKs or data. `private/` is gitignored and is its own git repo; never commit it from here. Core changes found while working on the private app go into this repo, never into `private/` (manual discipline, not toolable).
 - Pasted code, logs, page sources or screenshots holding credentials, tokens, hosts or customer data (ID numbers, contract numbers, names): do not repeat them; use placeholders and remind me to sanitize. Share failures with `npm run error:share` (masked page source only).
 - Never commit `.env` (only `.env.example`), app binaries, reports, screenshots or page sources. `npm run guard` must pass.
+- Never tap a control that changes UAT data (submit, send, resend, assign, cancel, approve, review, edit) without my explicit yes, in a probe or a TC (review).
+- Discovery dumps in `private/discovery/` hold real UAT data: delete a menu's `probe-<menu>/` once its TCs are merged (with my yes).
 
 ## Plans and decisions
 - A new feature or multi-file change gets a written plan at `docs/plans/YYYY-MM-DD-<topic>.md` (checkbox tasks with signatures, tests and verification commands); a spec goes beside it as `...-design.md`. Do not implement without a plan I approved. A one-file fix, docs change or version bump needs only a short approved design in chat.
@@ -81,7 +84,8 @@ When asked to review or audit: score 1-5 per dimension (layering, isolation, sta
 ## Git
 - One branch per change from `main`: `feat/`, `fix/`, `test/`, `build/` (dependencies, drivers) or `docs/`. Merge to `main` with a merge commit. Commit each logical change on its branch.
 - Conventional Commits, one short English line, optional scope (`feat(pages): ...`). Hooks run on commit and push; never `--no-verify`.
-- Stage only files changed in this session, by explicit path. Never `git add -A` or `git add .`. `git push` is done by the owner.
+- Stage only files changed in this session, by explicit path. Never `git add -A` or `git add .`. `git push` of this repo is done by the owner; `private/` is pushed by Claude after a merge I approved.
 
 ## Working style
 Short, direct output. Code and decisions first. Answer shapes: architecture = problem, options, recommendation; bug = root cause, fix, verify, regression risk; review = scores, then gaps.
+Chat in Bahasa Indonesia; code, commits, test titles and docs in English (private test-case `.txt` files stay Indonesian).
