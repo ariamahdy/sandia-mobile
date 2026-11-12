@@ -58,7 +58,7 @@ Act as a strict senior mobile QA automation architect. Challenge weak designs; d
 
 ## Environment
 - Personal Mac: real Android device over USB (no local emulator since 2026-11-02; CI keeps its own); iOS later, once Xcode is set up. Typecheck, lint and unit tests need no device.
-- Before any run or tap on my phone (one TC, a probe, `--repeat`), give the command and an estimate and wait for my yes. During a run the phone stays on Do Not Disturb and the host stays awake (`caffeinate -i` on macOS); a single command that stalls 10-20 s points to host sleep first (`pmset -g log`).
+- Before any run or tap on my phone (one TC, a probe, `--repeat`), give the command and an estimate and wait for my yes. During a run the phone stays on Do Not Disturb; a single command that stalls 10-20 s points to host sleep first (`pmset -g log`).
 - Company Windows laptop: real device, runs only `AUT=uat`. Shared private values belong in `private/.env` (`AUTH_USERNAME`, `AUTH_PASSWORD`, device values, `UAT_APP`); each app's values in `private/.env.<app>` and its specs in `private/tests/e2e/<app>/` (D28). Run with `npm run test:uat` (cross-platform; never `AUT=uat npx ...`, which fails in PowerShell/cmd).
 - A private app behind the VPN cannot be run by Claude; one reachable without VPN can be run on the personal Mac. Never claim a private or emulator run passed that Claude did not execute; otherwise give the command to run.
 - Node 26 (`.nvmrc`). Run `npm run doctor` first when a device run fails to start.
